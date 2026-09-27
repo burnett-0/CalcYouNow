@@ -1,0 +1,2049 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CalcYouNow 3.0 — Build Your Own Calculators</title>
+<meta name="description" content="Build your own calculators, saved and ready to use.">
+<meta name="theme-color" content="#24324C">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CalcYouNow">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #24324C;
+    --ink-soft: #33456A;
+    --paper: #F3EFE7;
+    --paper-soft: #E9E3D7;
+    --paper-line: #DCD4C4;
+    --brass: #24324C;
+    --brass-dark: #24324C;
+    --teal: #2E7D3E;
+    --rust: #C0392B;
+    --pink: #C0392B;
+    --gold: #6BE07A;
+    --lcd: #6BE07A;
+    --on-primary: #F3EFE7;
+    --brand-ink: #24324C;
+    --gradient-brand: linear-gradient(135deg, #33456A 0%, #24324C 100%);
+    --text: #1C2740;
+    --text-dim: #6B7488;
+    --surface: #F7F4EE;
+    --surface-raised: #FFFFFF;
+    --border: #E2DBCD;
+    --shadow-inset: rgba(10,18,34,0.45);
+    --font-display: 'Poppins', -apple-system, sans-serif;
+    --font-mono: 'IBM Plex Mono', 'SF Mono', Menlo, Consolas, monospace;
+    --font-ui: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --text: #EDE8DE;
+      --text-dim: #A3ADC2;
+      --surface: #0F1729;
+      --surface-raised: #18233A;
+      --border: #2B3957;
+      --paper-line: #2B3957;
+      --paper: #18233A;
+      --paper-soft: #22304B;
+      --ink: #0A1120;
+      --brass: #6BD67B;
+      --brass-dark: #8FE39B;
+      --teal: #6BD67B;
+      --rust: #F28B82;
+      --on-primary: #0F1729;
+      --brand-ink: #EDE8DE;
+      --gradient-brand: linear-gradient(135deg, #7BE08A 0%, #4FBF60 100%);
+      --shadow-inset: rgba(0,0,0,0.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --text: #EDE8DE;
+    --text-dim: #A3ADC2;
+    --surface: #0F1729;
+    --surface-raised: #18233A;
+    --border: #2B3957;
+    --paper-line: #2B3957;
+    --paper: #18233A;
+    --paper-soft: #22304B;
+    --ink: #0A1120;
+    --brass: #6BD67B;
+    --brass-dark: #8FE39B;
+    --teal: #6BD67B;
+    --rust: #F28B82;
+    --on-primary: #0F1729;
+    --brand-ink: #EDE8DE;
+    --gradient-brand: linear-gradient(135deg, #7BE08A 0%, #4FBF60 100%);
+    --shadow-inset: rgba(0,0,0,0.6);
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    height: 100%;
+    margin: 0;
+  }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  body {
+    font-family: var(--font-ui);
+    background: var(--surface);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  #app { min-height: 100%; display: flex; flex-direction: column; }
+
+  .topbar {
+    position: sticky;
+    top: 0;
+    padding-top: env(safe-area-inset-top, 0px);
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    z-index: 10;
+  }
+  .topbar-inner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    max-width: 640px;
+    margin: 0 auto;
+    width: 100%;
+  }
+  .back-btn {
+    background: none;
+    border: none;
+    color: var(--text);
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 6px 4px 6px 0;
+    font-family: var(--font-ui);
+  }
+  .topbar h1 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 22px;
+    margin: 0;
+    letter-spacing: -0.01em;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .brand-title { display: flex; align-items: center; gap: 10px; color: var(--brand-ink); font-weight: 400; letter-spacing: -0.02em; }
+  .brand-logo { width: 36px; height: 36px; border-radius: 9px; flex-shrink: 0; box-shadow: 0 0 0 1px var(--border); }
+  .brand-word { overflow: hidden; text-overflow: ellipsis; }
+  .brand-word b { font-weight: 700; }
+  .brand-word .light { font-weight: 400; }
+  .brand-version { font-size: 11px; font-weight: 600; color: var(--teal); border: 1px solid var(--border); border-radius: 999px; padding: 2px 8px; letter-spacing: 0; flex-shrink: 0; }
+  .icon-btn {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-size: 20px;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 8px;
+  }
+  .icon-btn:active { background: var(--paper-soft); }
+
+  main {
+    flex: 1;
+    max-width: 640px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 18px 18px 100px;
+  }
+
+  /* ---------- Home screen ---------- */
+  .home-lede {
+    font-family: var(--font-display);
+    font-size: 15px;
+    color: var(--text-dim);
+    margin: 4px 0 22px;
+    line-height: 1.5;
+    max-width: 46ch;
+  }
+  .section-label {
+    font-family: var(--font-ui);
+    font-size: 13px;
+    color: var(--text-dim);
+    margin: 26px 0 10px;
+    font-weight: 600;
+  }
+  .section-label:first-of-type { margin-top: 0; }
+  .calc-list { display: flex; flex-direction: column; gap: 9px; }
+  .calc-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent, var(--brass));
+    border-radius: 6px;
+    padding: 14px 16px;
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
+    font-family: var(--font-ui);
+    color: var(--text);
+    transition: transform 0.12s ease;
+  }
+  .calc-row:active { transform: scale(0.98); }
+  .calc-row-main { flex: 1; min-width: 0; }
+  .calc-row-name {
+    font-family: var(--font-display);
+    font-size: 17px;
+    font-weight: 600;
+    margin: 0 0 3px;
+  }
+  .calc-row-formula {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-dim);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .calc-row-chevron { color: var(--text-dim); font-size: 18px; }
+  .empty-note {
+    color: var(--text-dim);
+    font-size: 14px;
+    padding: 10px 2px;
+    font-style: italic;
+  }
+
+  .fab {
+    position: fixed;
+    right: 20px;
+    bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+    background: var(--gradient-brand);
+    color: var(--on-primary);
+    border: none;
+    border-radius: 999px;
+    padding: 15px 22px 15px 18px;
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 8px 20px rgba(20,30,50,0.30);
+    cursor: pointer;
+    z-index: 20;
+  }
+  .fab:active { filter: brightness(0.92); }
+  .fab-plus { font-size: 20px; line-height: 1; }
+
+  /* ---------- Form elements ---------- */
+  .field { margin-bottom: 20px; }
+  .field label {
+    display: block;
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-bottom: 7px;
+    font-weight: 600;
+  }
+  .field input[type="text"], .field input[type="number"] {
+    width: 100%;
+    padding: 13px 14px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface-raised);
+    color: var(--text);
+    font-family: var(--font-ui);
+    font-size: 16px;
+  }
+  .field input:focus {
+    outline: 2px solid var(--teal);
+    outline-offset: 1px;
+  }
+  .field .hint { font-size: 12px; color: var(--text-dim); margin-top: 6px; }
+
+  .input-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .input-row .var-badge {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--teal);
+    background: var(--paper-soft);
+    border-radius: 5px;
+    padding: 12px 10px;
+    min-width: 22px;
+    text-align: center;
+  }
+  .input-row input[type="text"] {
+    flex: 1;
+    padding: 11px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface-raised);
+    color: var(--text);
+    font-size: 15px;
+  }
+  .row-remove {
+    background: none;
+    border: none;
+    color: var(--rust);
+    font-size: 20px;
+    cursor: pointer;
+    padding: 6px 4px;
+    line-height: 1;
+  }
+  .add-input-btn {
+    background: none;
+    border: 1px dashed var(--border);
+    color: var(--teal);
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 14px;
+    padding: 11px;
+    border-radius: 6px;
+    width: 100%;
+    cursor: pointer;
+    margin-top: 4px;
+  }
+  .add-input-btn:active { background: var(--paper-soft); }
+
+  .input-block { margin-bottom: 10px; }
+  .type-select {
+    padding: 11px 8px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface-raised);
+    color: var(--text);
+    font-family: var(--font-ui);
+    font-size: 13px;
+    max-width: 108px;
+  }
+  .options-block {
+    margin: 6px 0 10px 30px;
+    padding: 10px 12px 4px;
+    border-left: 2px solid var(--border);
+  }
+  .options-block-label { font-size: 12px; color: var(--text-dim); margin-bottom: 8px; font-weight: 600; }
+  .option-row { display: flex; gap: 6px; align-items: center; margin-bottom: 8px; }
+  .option-row input[type="text"] {
+    flex: 2;
+    min-width: 0;
+    padding: 9px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface-raised);
+    color: var(--text);
+    font-family: var(--font-ui);
+    font-size: 14px;
+  }
+  .option-row input[type="number"] {
+    flex: 1;
+    min-width: 0;
+    padding: 9px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface-raised);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 14px;
+  }
+  .add-option-btn {
+    background: none;
+    border: 1px dashed var(--border);
+    color: var(--teal);
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 13px;
+    padding: 8px;
+    border-radius: 6px;
+    width: 100%;
+    cursor: pointer;
+    margin-bottom: 4px;
+  }
+  .add-option-btn:active { background: var(--paper-soft); }
+  .field select, .test-grid select {
+    width: 100%;
+    padding: 13px 14px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface-raised);
+    color: var(--text);
+    font-family: var(--font-ui);
+    font-size: 16px;
+  }
+
+  .mode-tabs { display: flex; gap: 8px; margin-bottom: 18px; }
+  .mode-tab {
+    flex: 1;
+    padding: 11px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface-raised);
+    color: var(--text-dim);
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .mode-tab.active {
+    background: var(--brass);
+    color: var(--on-primary);
+    border-color: var(--brass);
+  }
+  .describe-textarea {
+    width: 100%;
+    padding: 13px 14px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface-raised);
+    color: var(--text);
+    font-family: var(--font-ui);
+    font-size: 15px;
+    resize: vertical;
+    min-height: 92px;
+    line-height: 1.4;
+  }
+  .describe-textarea:focus { outline: 2px solid var(--teal); outline-offset: 1px; }
+  .describe-status { font-size: 13px; color: var(--text-dim); min-height: 18px; margin: 10px 0 2px; }
+  .describe-status.error { color: var(--rust); }
+
+  .chip-row { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 10px; }
+  .chip {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 999px;
+    padding: 7px 12px;
+    cursor: pointer;
+  }
+  .chip:active { background: var(--paper-soft); }
+  .chip.op { color: var(--brass-dark); font-weight: 600; }
+  .chip.fn { color: var(--teal); }
+
+  .formula-input {
+    width: 100%;
+    padding: 13px 14px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface-raised);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 16px;
+  }
+
+  .test-panel {
+    margin-top: 22px;
+    padding: 16px;
+    border-radius: 8px;
+    background: var(--paper-soft);
+    border: 1px solid var(--border);
+  }
+  .test-panel-label {
+    font-size: 12px;
+    color: var(--text-dim);
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  .test-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  .test-grid .field { margin-bottom: 0; }
+  .test-grid label { font-size: 12px; margin-bottom: 5px; }
+  .test-grid input { padding: 9px 10px; font-size: 14px; }
+  .test-result {
+    font-family: var(--font-mono);
+    font-size: 15px;
+    color: var(--teal);
+    min-height: 20px;
+  }
+  .test-result.error { color: var(--rust); }
+
+  .primary-btn {
+    width: 100%;
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    border-radius: 8px;
+    padding: 16px;
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+  :root[data-theme="dark"] .primary-btn { background: var(--brass); color: var(--on-primary); }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .primary-btn { background: var(--brass); color: var(--on-primary); }
+  }
+  .primary-btn:active { opacity: 0.85; }
+
+  .ghost-btn {
+    width: 100%;
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--rust);
+    border-radius: 8px;
+    padding: 13px;
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+
+  /* ---------- Use screen ---------- */
+  .use-inputs { display: flex; flex-direction: column; gap: 16px; margin-bottom: 8px; }
+  .use-field label {
+    display: block;
+    font-size: 14px;
+    color: var(--text-dim);
+    margin-bottom: 7px;
+    font-weight: 500;
+  }
+  .use-field input {
+    width: 100%;
+    padding: 15px 14px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface-raised);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 18px;
+  }
+  .use-field input:focus { outline: 2px solid var(--teal); outline-offset: 1px; }
+  .use-field select {
+    width: 100%;
+    padding: 15px 14px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface-raised);
+    color: var(--text);
+    font-family: var(--font-ui);
+    font-size: 16px;
+  }
+  .use-field select:focus { outline: 2px solid var(--teal); outline-offset: 1px; }
+
+  .readout {
+    margin-top: 26px;
+    border-radius: 10px;
+    background: var(--ink);
+    padding: 24px 20px;
+    text-align: center;
+    box-shadow: inset 0 2px 10px var(--shadow-inset);
+    transition: transform 0.18s ease;
+  }
+  .readout.flip { transform: scale(1.015); }
+  .readout-label {
+    font-family: var(--font-ui);
+    font-size: 12px;
+    color: #9DAAC6;
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  .readout-value {
+    font-family: var(--font-mono);
+    font-size: 40px;
+    font-weight: 600;
+    color: var(--lcd);
+    text-shadow: 0 0 14px rgba(107,224,122,0.35);
+    font-variant-numeric: tabular-nums;
+    word-break: break-word;
+    line-height: 1.1;
+  }
+  .readout-value.error { color: #F28B82; text-shadow: none; font-size: 16px; font-weight: 500; }
+  .readout-placeholder { color: #3F6A4B; text-shadow: none; }
+
+  .use-actions { display: flex; gap: 10px; margin-top: 22px; }
+  .use-actions button {
+    flex: 1;
+    padding: 12px;
+    border-radius: 8px;
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .use-actions .edit-a { background: none; border: 1px solid var(--border); color: var(--text); }
+  .use-actions .dup-a { background: none; border: 1px solid var(--border); color: var(--teal); }
+  .use-actions .del-a { background: none; border: 1px solid var(--border); color: var(--rust); }
+
+  .template-tag {
+    display: inline-block;
+    font-size: 11px;
+    color: var(--text-dim);
+    background: var(--paper-soft);
+    border-radius: 4px;
+    padding: 3px 8px;
+    margin-bottom: 14px;
+    font-weight: 600;
+  }
+
+  @media (max-width: 380px) {
+    .readout-value { font-size: 32px; }
+  }
+
+  /* ---------- Row quick-actions (home list) ---------- */
+  .calc-row { position: relative; }
+  .calc-row.has-actions { padding-right: 84px; }
+  .row-actions {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    gap: 2px;
+  }
+  .row-action-btn {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-size: 16px;
+    padding: 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    line-height: 1;
+  }
+  .row-action-btn:active { background: var(--paper-soft); }
+  .row-action-btn.del:active { color: var(--rust); }
+
+  /* ---------- Folder sections ---------- */
+  .folder-section { margin-bottom: 4px; }
+  .folder-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 2px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .folder-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .folder-header-name {
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 14px;
+    flex: 1;
+  }
+  .folder-header-count { font-size: 12px; color: var(--text-dim); }
+  .folder-chevron { color: var(--text-dim); font-size: 13px; transition: transform 0.15s ease; }
+  .folder-chevron.collapsed { transform: rotate(-90deg); }
+  .folder-body { display: flex; flex-direction: column; gap: 9px; margin-bottom: 14px; }
+  .folder-body.collapsed { display: none; }
+
+  /* ---------- Organize screen ---------- */
+  .org-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent, var(--brass));
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+  }
+  .org-row-name { flex: 1; min-width: 0; font-weight: 600; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
+  .org-move-btns { display: flex; flex-direction: column; gap: 2px; }
+  .org-move-btns button, .org-icon-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 5px;
+    padding: 3px 7px;
+    font-size: 12px;
+    cursor: pointer;
+    line-height: 1.4;
+  }
+  .org-move-btns button:disabled { opacity: 0.3; }
+  .org-folder-select {
+    max-width: 118px;
+    padding: 7px 6px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface-raised);
+    color: var(--text);
+    font-family: var(--font-ui);
+    font-size: 12px;
+  }
+  .folder-mgmt-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 4px;
+    border-bottom: 1px solid var(--border);
+  }
+  .folder-mgmt-row:last-of-type { border-bottom: none; }
+  .folder-mgmt-name {
+    flex: 1;
+    border: none;
+    background: none;
+    color: var(--text);
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 14px;
+    padding: 4px 2px;
+  }
+  .folder-mgmt-name:focus { outline: 1px solid var(--teal); border-radius: 4px; }
+  .folder-swatch {
+    width: 20px; height: 20px; border-radius: 50%;
+    border: 2px solid var(--surface-raised);
+    box-shadow: 0 0 0 1px var(--border);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .add-folder-btn {
+    background: none;
+    border: 1px dashed var(--border);
+    color: var(--teal);
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 13px;
+    padding: 10px;
+    border-radius: 6px;
+    width: 100%;
+    cursor: pointer;
+    margin-top: 6px;
+  }
+  .new-folder-form {
+    display: flex;
+    gap: 8px;
+    margin-top: 6px;
+  }
+  .new-folder-input {
+    flex: 1;
+    padding: 10px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface-raised);
+    color: var(--text);
+    font-family: var(--font-ui);
+    font-size: 14px;
+  }
+  .new-folder-input:focus { outline: 1px solid var(--teal); }
+  .new-folder-save {
+    background: var(--teal);
+    border: none;
+    color: var(--on-primary);
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 13px;
+    padding: 0 16px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .new-folder-cancel {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 13px;
+    padding: 0 14px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
+  /* ---------- Colour picker (create/edit) ---------- */
+  .swatch-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .swatch-btn {
+    width: 32px; height: 32px; border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    box-shadow: 0 0 0 1px var(--border);
+  }
+  .swatch-btn.selected { border-color: var(--text); box-shadow: 0 0 0 2px var(--surface); outline: 2px solid var(--text); }
+  .swatch-custom {
+    width: 32px; height: 32px; border-radius: 50%;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    background: conic-gradient(red,yellow,lime,cyan,blue,magenta,red);
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+(function() {
+  "use strict";
+
+  /* ============ Storage ============ */
+  var STORAGE_KEY = "reckon:calculators:v1";
+  var FOLDERS_KEY = "reckon:folders:v1";
+
+  function loadAll() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return null;
+      return JSON.parse(raw);
+    } catch (e) {
+      return null;
+    }
+  }
+  function saveAll(list) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+      return true;
+    } catch (e) {
+      console.error("Storage error:", e);
+      return false;
+    }
+  }
+
+  var FOLDER_COLORS = ["#3FA34D", "#4E7FD9", "#D9A13B", "#C0392B", "#7A5CC4", "#3AA5B5", "#E07A3A", "#6B7A8F"];
+
+  function loadFolders() {
+    try {
+      var raw = localStorage.getItem(FOLDERS_KEY);
+      if (!raw) return [];
+      var parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      return [];
+    }
+  }
+  function saveFolders(list) {
+    try {
+      localStorage.setItem(FOLDERS_KEY, JSON.stringify(list));
+      return true;
+    } catch (e) {
+      console.error("Storage error:", e);
+      return false;
+    }
+  }
+  function getFolders() { return loadFolders(); }
+  function getFolderById(id) {
+    var list = getFolders();
+    for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i];
+    return null;
+  }
+  function folderUid() { return "f" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+  function createFolder(name, color) {
+    var folders = getFolders();
+    var f = { id: folderUid(), name: name.trim() || "Untitled folder", color: color || FOLDER_COLORS[folders.length % FOLDER_COLORS.length] };
+    folders.push(f);
+    saveFolders(folders);
+    return f;
+  }
+  function deleteFolder(id) {
+    var folders = getFolders().filter(function(f) { return f.id !== id; });
+    saveFolders(folders);
+    var list = getList();
+    var changed = false;
+    list.forEach(function(c) { if (c.folderId === id) { c.folderId = null; changed = true; } });
+    if (changed) saveAll(list);
+  }
+
+  var TEMPLATES = [
+    {
+      id: "tpl-circumference",
+      name: "Circle Circumference",
+      inputs: [{ id: "a", label: "Radius" }],
+      formula: "2*pi*a",
+      outputLabel: "Circumference",
+      isTemplate: true,
+      accent: "#4E7FD9"
+    },
+    {
+      id: "tpl-area",
+      name: "Circle Area",
+      inputs: [{ id: "a", label: "Radius" }],
+      formula: "pi*a^2",
+      outputLabel: "Area",
+      isTemplate: true,
+      accent: "#3AA5B5"
+    },
+    {
+      id: "tpl-bmi",
+      name: "BMI",
+      inputs: [{ id: "a", label: "Weight (kg)" }, { id: "b", label: "Height (m)" }],
+      formula: "a/(b^2)",
+      outputLabel: "Body Mass Index",
+      isTemplate: true,
+      accent: "#C0392B"
+    },
+    {
+      id: "tpl-tip",
+      name: "Split the Bill",
+      inputs: [
+        { id: "a", label: "Bill total" },
+        { id: "b", label: "Tip percent" },
+        { id: "c", label: "Number of people" }
+      ],
+      formula: "(a+(a*(b/100)))/c",
+      outputLabel: "Each person pays",
+      isTemplate: true,
+      accent: "#D9A13B"
+    },
+    {
+      id: "tpl-hyp",
+      name: "Triangle Hypotenuse",
+      inputs: [{ id: "a", label: "Side A" }, { id: "b", label: "Side B" }],
+      formula: "sqrt(a^2+b^2)",
+      outputLabel: "Hypotenuse",
+      isTemplate: true,
+      accent: "#7A5CC4"
+    },
+    {
+      id: "tpl-turf",
+      name: "Turf Cost",
+      inputs: [
+        { id: "a", label: "Length (m)", type: "number" },
+        { id: "b", label: "Width (m)", type: "number" },
+        { id: "c", label: "Turf type", type: "lookup", options: [
+          { label: "Real Turf", value: "15" },
+          { label: "Basic Artificial Turf", value: "20" },
+          { label: "Standard Artificial Turf", value: "25" },
+          { label: "Premium Artificial Turf", value: "30" }
+        ] }
+      ],
+      formula: "a*b*c",
+      outputLabel: "Total cost (£)",
+      isTemplate: true,
+      accent: "#3FA34D"
+    }
+  ];
+
+  function ensureSeeded() {
+    var list = loadAll();
+    if (list === null) {
+      list = TEMPLATES.slice();
+      saveAll(list);
+      return list;
+    }
+    // Refresh built-in template styling (e.g. after a rebrand) without touching the user's own calculators
+    var changed = false;
+    list.forEach(function(item) {
+      if (item.isTemplate) {
+        var def = TEMPLATES.filter(function(t) { return t.id === item.id; })[0];
+        if (def && item.accent !== def.accent) { item.accent = def.accent; changed = true; }
+      }
+    });
+    if (changed) saveAll(list);
+    return list;
+  }
+
+  /* ============ Formula engine ============ */
+  var CONSTANTS = { pi: Math.PI, e: Math.E };
+  var FUNCTIONS = {
+    sqrt: Math.sqrt,
+    abs: Math.abs,
+    round: Math.round,
+    floor: Math.floor,
+    ceil: Math.ceil,
+    min: Math.min,
+    max: Math.max,
+    log: Math.log,
+    sin: Math.sin,
+    cos: Math.cos,
+    tan: Math.tan
+  };
+
+  function tokenize(str) {
+    var tokens = [];
+    var i = 0;
+    while (i < str.length) {
+      var c = str[i];
+      if (/\s/.test(c)) { i++; continue; }
+      if (/[0-9.]/.test(c)) {
+        var num = "";
+        while (i < str.length && /[0-9.]/.test(str[i])) { num += str[i]; i++; }
+        tokens.push({ type: "num", value: parseFloat(num) });
+        continue;
+      }
+      if (/[a-zA-Z]/.test(c)) {
+        var name = "";
+        while (i < str.length && /[a-zA-Z0-9]/.test(str[i])) { name += str[i]; i++; }
+        tokens.push({ type: "ident", value: name });
+        continue;
+      }
+      if ("+-*/^(),%".indexOf(c) !== -1) {
+        tokens.push({ type: "op", value: c });
+        i++;
+        continue;
+      }
+      throw new Error("Unexpected character: " + c);
+    }
+    return tokens;
+  }
+
+  function parseExpr(tokens, vars) {
+    var pos = 0;
+    function peek() { return tokens[pos]; }
+    function next() { return tokens[pos++]; }
+
+    function parseExpression() {
+      var left = parseTerm();
+      while (peek() && peek().type === "op" && (peek().value === "+" || peek().value === "-")) {
+        var op = next().value;
+        var right = parseTerm();
+        left = op === "+" ? left + right : left - right;
+      }
+      return left;
+    }
+    function parseTerm() {
+      var left = parseFactor();
+      while (peek() && peek().type === "op" && (peek().value === "*" || peek().value === "/" || peek().value === "%")) {
+        var op = next().value;
+        var right = parseFactor();
+        if (op === "*") left = left * right;
+        else if (op === "/") left = left / right;
+        else left = left % right;
+      }
+      return left;
+    }
+    function parseFactor() {
+      var base = parseUnary();
+      if (peek() && peek().type === "op" && peek().value === "^") {
+        next();
+        var exp = parseFactor();
+        return Math.pow(base, exp);
+      }
+      return base;
+    }
+    function parseUnary() {
+      if (peek() && peek().type === "op" && (peek().value === "-" || peek().value === "+")) {
+        var op = next().value;
+        var val = parseUnary();
+        return op === "-" ? -val : val;
+      }
+      return parsePrimary();
+    }
+    function parsePrimary() {
+      var t = peek();
+      if (!t) throw new Error("Unexpected end of formula");
+      if (t.type === "num") { next(); return t.value; }
+      if (t.type === "op" && t.value === "(") {
+        next();
+        var val = parseExpression();
+        if (!peek() || peek().value !== ")") throw new Error("Missing closing parenthesis");
+        next();
+        return val;
+      }
+      if (t.type === "ident") {
+        next();
+        var name = t.value;
+        if (peek() && peek().type === "op" && peek().value === "(") {
+          next();
+          var args = [];
+          if (!(peek() && peek().value === ")")) {
+            args.push(parseExpression());
+            while (peek() && peek().value === ",") { next(); args.push(parseExpression()); }
+          }
+          if (!peek() || peek().value !== ")") throw new Error("Missing closing parenthesis in " + name + "()");
+          next();
+          var fn = FUNCTIONS[name.toLowerCase()];
+          if (!fn) throw new Error("Unknown function: " + name);
+          return fn.apply(null, args);
+        }
+        if (name in vars) return vars[name];
+        var lname = name.toLowerCase();
+        if (lname in CONSTANTS) return CONSTANTS[lname];
+        throw new Error("Unknown value: " + name);
+      }
+      throw new Error("Unexpected token: " + t.value);
+    }
+
+    var result = parseExpression();
+    if (pos < tokens.length) throw new Error("Unexpected input near '" + tokens[pos].value + "'");
+    return result;
+  }
+
+  function evaluateFormula(formula, vars) {
+    if (!formula || !formula.trim()) throw new Error("Enter a formula");
+    var tokens = tokenize(formula);
+    var result = parseExpr(tokens, vars);
+    if (typeof result !== "number" || isNaN(result) || !isFinite(result)) {
+      throw new Error("That formula doesn't produce a valid number");
+    }
+    return result;
+  }
+
+  function formatNumber(n) {
+    if (Math.abs(n) < 1e-9) n = 0;
+    var rounded = Math.round(n * 1e6) / 1e6;
+    return rounded.toString();
+  }
+
+  /* ============ AI-assisted plain-English builder ============ */
+  var samplePromise = null;
+  function getSample() {
+    if (typeof window === "undefined" || !window.claude || typeof window.claude.use !== "function") {
+      return Promise.resolve(null);
+    }
+    if (!samplePromise) {
+      samplePromise = window.claude.use("sample").catch(function() { return null; });
+    }
+    return samplePromise;
+  }
+
+  function generateFromDescription(text) {
+    return getSample().then(function(sample) {
+      if (!sample) throw new Error('This feature isn\'t available right now — try "Build with fields" instead.');
+      var prompt =
+        "You turn a plain-English description of a calculation into a structured calculator definition.\n\n" +
+        "Return ONLY valid JSON, with no markdown formatting and no explanation, matching exactly this shape:\n" +
+        '{"name": string, "inputs": [{"label": string}], "formula": string, "outputLabel": string}\n\n' +
+        "Rules for \"formula\":\n" +
+        '- Reference each input by a single lowercase letter in the same order as the inputs array: the first input is "a", the second is "b", the third is "c", and so on.\n' +
+        "- You may use operators + - * / ^ (power) and parentheses.\n" +
+        "- You may use these functions: sqrt(x), abs(x), round(x), min(a,b), max(a,b).\n" +
+        "- You may use the constant pi.\n" +
+        "- Never reference an input by its label, only by its assigned letter.\n" +
+        '- A phrase like "b percent" means (b/100).\n' +
+        '- "name" should be a short title for the calculator, a few words.\n' +
+        '- "outputLabel" should be a short label for what the result represents.\n' +
+        "- Keep the number of inputs to only what's truly needed.\n\n" +
+        'Description: """' + text.replace(/"/g, "'") + '"""';
+      return sample.json(prompt, { modelTier: "quick" });
+    }).then(function(parsed) {
+      if (!parsed || !parsed.formula || !Array.isArray(parsed.inputs) || !parsed.inputs.length) {
+        throw new Error("Couldn't understand that description. Try being more specific about each number.");
+      }
+      var vars = {};
+      parsed.inputs.forEach(function(inp, idx) { vars[VAR_LETTERS[idx]] = 1; });
+      try {
+        evaluateFormula(parsed.formula, vars);
+      } catch (e) {
+        throw new Error('Generated a calculation that isn\'t quite right (' + e.message + '). You can fix it in "Build with fields".');
+      }
+      return parsed;
+    });
+  }
+
+  /* ============ App state & routing ============ */
+  var state = {
+    screen: "home",       // home | create | use
+    editingId: null,      // id being edited, or null for new
+    activeId: null         // id being used
+  };
+
+  var VAR_LETTERS = "abcdefghijklmnopqrstuvwxyz".split("");
+
+  function uid() {
+    return "c" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  }
+
+  function getList() { return ensureSeeded(); }
+  function getById(id) {
+    var list = getList();
+    for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i];
+    return null;
+  }
+
+  function duplicateCalc(id) {
+    var list = getList();
+    var source = null;
+    for (var i = 0; i < list.length; i++) if (list[i].id === id) { source = list[i]; break; }
+    if (!source) return null;
+    var copy = JSON.parse(JSON.stringify(source));
+    copy.id = uid();
+    copy.isTemplate = false;
+    copy.name = source.name + " (copy)";
+    // Insert the duplicate right after the original so it's easy to find
+    var idx = list.indexOf(source);
+    list.splice(idx + 1, 0, copy);
+    saveAll(list);
+    return copy.id;
+  }
+
+  function goHome() { state.screen = "home"; state.editingId = null; state.activeId = null; render(); window.scrollTo(0,0); }
+  function goCreate(editId) { state.screen = "create"; state.editingId = editId || null; render(); window.scrollTo(0,0); }
+  function goUse(id) { state.screen = "use"; state.activeId = id; render(); window.scrollTo(0,0); }
+  function goOrganize() { state.screen = "organize"; render(); window.scrollTo(0,0); }
+
+  /* ============ Rendering ============ */
+  var app = document.getElementById("app");
+
+  function el(tag, attrs, children) {
+    var e = document.createElement(tag);
+    attrs = attrs || {};
+    for (var k in attrs) {
+      if (k === "text") e.textContent = attrs[k];
+      else if (k === "html") e.innerHTML = attrs[k];
+      else if (k.indexOf("on") === 0 && typeof attrs[k] === "function") e.addEventListener(k.slice(2), attrs[k]);
+      else e.setAttribute(k, attrs[k]);
+    }
+    (children || []).forEach(function(c) { if (c) e.appendChild(c); });
+    return e;
+  }
+
+  function render() {
+    app.innerHTML = "";
+    if (state.screen === "home") app.appendChild(renderHome());
+    else if (state.screen === "create") app.appendChild(renderCreate(state.editingId));
+    else if (state.screen === "use") app.appendChild(renderUse(state.activeId));
+    else if (state.screen === "organize") app.appendChild(renderOrganize());
+  }
+
+  function topbar(title, opts) {
+    opts = opts || {};
+    var bar = el("div", { class: "topbar" });
+    var inner = el("div", { class: "topbar-inner" });
+    if (opts.onBack) {
+      inner.appendChild(el("button", { class: "back-btn", "aria-label": "Back", onclick: opts.onBack, text: "‹" }));
+    }
+    if (opts.brand) {
+      var h1 = el("h1", { class: "brand-title", "aria-label": title });
+      h1.appendChild(el("img", { class: "brand-logo", src: "logo-mark.png", alt: "" }));
+      var word = el("span", { class: "brand-word" });
+      word.appendChild(el("b", { text: "Calc" }));
+      word.appendChild(el("span", { class: "light", text: "You" }));
+      word.appendChild(el("b", { text: "Now" }));
+      h1.appendChild(word);
+      h1.appendChild(el("span", { class: "brand-version", text: "3.0" }));
+      inner.appendChild(h1);
+    } else {
+      inner.appendChild(el("h1", { text: title }));
+    }
+    if (opts.rightIcon) {
+      inner.appendChild(el("button", { class: "icon-btn", onclick: opts.onRight, text: opts.rightIcon }));
+    }
+    bar.appendChild(inner);
+    return bar;
+  }
+
+  var collapsedFolders = {};
+  var templatesCollapsed = false;
+
+  /* ---- Home ---- */
+  function renderHome() {
+    var wrap = el("div", {});
+    wrap.appendChild(topbar("CalcYouNow 3.0", { brand: true, rightIcon: "⇅", onRight: goOrganize }));
+    var main = el("main", {});
+    main.appendChild(el("p", { class: "home-lede", text: "Your own calculators, saved and ready. Build one for anything you work out again and again." }));
+
+    var list = getList();
+    var custom = list.filter(function(c) { return !c.isTemplate; });
+    var templates = list.filter(function(c) { return c.isTemplate; });
+    var folders = getFolders();
+
+    if (custom.length) {
+      main.appendChild(el("div", { class: "section-label", text: "Your calculators" }));
+
+      folders.forEach(function(folder) {
+        var items = custom.filter(function(c) { return c.folderId === folder.id; });
+        if (!items.length) return;
+        main.appendChild(renderFolderSection(folder, items));
+      });
+
+      var unfiled = custom.filter(function(c) { return !c.folderId || !getFolderById(c.folderId); });
+      if (unfiled.length) {
+        if (folders.length) main.appendChild(el("div", { class: "section-label", text: "Not in a folder" }));
+        main.appendChild(renderCalcList(unfiled, { editable: true }));
+      }
+    }
+
+    main.appendChild(renderTemplatesSection(templates));
+
+    wrap.appendChild(main);
+    wrap.appendChild(el("button", {
+      class: "fab",
+      onclick: function() { goCreate(null); }
+    }, [el("span", { class: "fab-plus", text: "+" }), el("span", { text: "New calculator" })]));
+    return wrap;
+  }
+
+  function renderTemplatesSection(items) {
+    var section = el("div", { class: "folder-section" });
+    var collapsed = !!templatesCollapsed;
+    var header = el("div", { class: "folder-header", onclick: function() {
+      templatesCollapsed = !templatesCollapsed;
+      render();
+    }});
+    header.appendChild(el("span", { class: "folder-header-name", text: "Templates" }));
+    header.appendChild(el("span", { class: "folder-header-count", text: items.length + (items.length === 1 ? " template" : " templates") }));
+    header.appendChild(el("span", { class: "folder-chevron" + (collapsed ? " collapsed" : ""), text: "▾" }));
+    section.appendChild(header);
+    var body = el("div", { class: "folder-body" + (collapsed ? " collapsed" : "") });
+    body.appendChild(renderCalcList(items, { editable: false }));
+    section.appendChild(body);
+    return section;
+  }
+
+  function renderFolderSection(folder, items) {
+    var section = el("div", { class: "folder-section" });
+    var collapsed = !!collapsedFolders[folder.id];
+    var header = el("div", { class: "folder-header", onclick: function() {
+      collapsedFolders[folder.id] = !collapsedFolders[folder.id];
+      render();
+    }});
+    header.appendChild(el("span", { class: "folder-dot", style: "background:" + (folder.color || "#3FA34D") }));
+    header.appendChild(el("span", { class: "folder-header-name", text: folder.name }));
+    header.appendChild(el("span", { class: "folder-header-count", text: items.length + (items.length === 1 ? " calculator" : " calculators") }));
+    header.appendChild(el("span", { class: "folder-chevron" + (collapsed ? " collapsed" : ""), text: "▾" }));
+    section.appendChild(header);
+    var body = el("div", { class: "folder-body" + (collapsed ? " collapsed" : "") });
+    body.appendChild(renderCalcList(items, { editable: true }));
+    section.appendChild(body);
+    return section;
+  }
+
+  function renderCalcList(items, opts) {
+    opts = opts || {};
+    var listEl = el("div", { class: "calc-list" });
+    if (!items.length) {
+      listEl.appendChild(el("div", { class: "empty-note", text: "Nothing here yet." }));
+      return listEl;
+    }
+    items.forEach(function(c) {
+      var row = el("button", { class: "calc-row" + (opts.editable ? " has-actions" : ""), style: "--accent:" + (c.accent || "#3FA34D"), onclick: function() { goUse(c.id); } });
+      var main = el("div", { class: "calc-row-main" }, [
+        el("div", { class: "calc-row-name", text: c.name }),
+        el("div", { class: "calc-row-formula", text: formulaPreview(c) })
+      ]);
+      row.appendChild(main);
+      if (opts.editable) {
+        var actions = el("div", { class: "row-actions" });
+        actions.appendChild(el("button", { class: "row-action-btn", type: "button", "aria-label": "Edit", text: "✎", onclick: function(e) {
+          e.stopPropagation();
+          goCreate(c.id);
+        }}));
+        actions.appendChild(el("button", { class: "row-action-btn del", type: "button", "aria-label": "Delete", text: "🗑", onclick: function(e) {
+          e.stopPropagation();
+          if (confirm('Delete "' + c.name + '"? This can\'t be undone.')) {
+            var list = getList().filter(function(x) { return x.id !== c.id; });
+            saveAll(list);
+            render();
+          }
+        }}));
+        row.appendChild(actions);
+      } else {
+        row.appendChild(el("div", { class: "calc-row-chevron", text: "›" }));
+      }
+      listEl.appendChild(row);
+    });
+    return listEl;
+  }
+
+  function formulaPreview(c) {
+    var f = c.formula;
+    (c.inputs || []).forEach(function(inp) {
+      var re = new RegExp("\\b" + inp.id + "\\b", "g");
+      f = f.replace(re, inp.label);
+    });
+    return f;
+  }
+
+  /* ---- Create / Edit ---- */
+  function renderCreate(editId) {
+    var existing = editId ? getById(editId) : null;
+    var draft = existing ? JSON.parse(JSON.stringify(existing)) : {
+      id: uid(),
+      name: "",
+      inputs: [{ id: "a", label: "", type: "number" }],
+      formula: "",
+      outputLabel: "Result",
+      isTemplate: false,
+      accent: pickAccent(),
+      folderId: null
+    };
+    if (draft.isTemplate) {
+      // editing a template = duplicate it into a custom one
+      draft.id = uid();
+      draft.isTemplate = false;
+      draft.name = draft.name + " (copy)";
+      draft.folderId = null;
+    }
+    if (draft.folderId === undefined) draft.folderId = null;
+
+    var showModeChoice = !existing; // plain-English mode is offered only when starting a brand new calculator
+
+    var wrap = el("div", {});
+    wrap.appendChild(topbar(existing && !existing.isTemplate ? "Edit calculator" : "New calculator", { onBack: function() {
+      if (existing && !existing.isTemplate) goUse(existing.id); else goHome();
+    }}));
+    var main = el("main", {});
+    var manualPanel = el("div", { id: "manual-panel" });
+
+    // Name field
+    var nameField = el("div", { class: "field" });
+    nameField.appendChild(el("label", { text: "Name" }));
+    var nameInput = el("input", { type: "text", placeholder: "e.g. Paint needed for a room", value: draft.name });
+    nameInput.addEventListener("input", function(e) { draft.name = e.target.value; });
+    nameField.appendChild(nameInput);
+    manualPanel.appendChild(nameField);
+
+    // Colour field
+    var colorField = el("div", { class: "field" });
+    colorField.appendChild(el("label", { text: "Colour" }));
+    var swatchRow = el("div", { class: "swatch-row" });
+    function renderSwatches() {
+      swatchRow.innerHTML = "";
+      ACCENT_COLORS.forEach(function(color) {
+        var isSel = draft.accent && draft.accent.toLowerCase() === color.toLowerCase();
+        var sw = el("button", { class: "swatch-btn" + (isSel ? " selected" : ""), type: "button", style: "background:" + color, "aria-label": color, onclick: function() {
+          draft.accent = color;
+          renderSwatches();
+        }});
+        swatchRow.appendChild(sw);
+      });
+      var customLabel = el("label", { class: "swatch-custom", style: draft.accent && ACCENT_COLORS.indexOf(draft.accent) === -1 ? ("background:" + draft.accent + ";box-shadow:0 0 0 2px var(--text)") : "" });
+      var customInput = el("input", { type: "color", value: draft.accent || "#3FA34D", style: "opacity:0;width:1px;height:1px;position:absolute;" });
+      customInput.addEventListener("input", function(e) { draft.accent = e.target.value; renderSwatches(); });
+      customLabel.appendChild(customInput);
+      swatchRow.appendChild(customLabel);
+    }
+    renderSwatches();
+    colorField.appendChild(swatchRow);
+    colorField.appendChild(el("div", { class: "hint", text: "Shown as the stripe on this calculator's card." }));
+    manualPanel.appendChild(colorField);
+
+    // Folder field
+    var folderField = el("div", { class: "field" });
+    folderField.appendChild(el("label", { text: "Folder" }));
+    var folderSelect = el("select", {});
+    function renderFolderSelect() {
+      folderSelect.innerHTML = "";
+      folderSelect.appendChild(el("option", { value: "", text: "No folder" }));
+      getFolders().forEach(function(f) {
+        var opt = el("option", { value: f.id, text: f.name });
+        if (draft.folderId === f.id) opt.setAttribute("selected", "selected");
+        folderSelect.appendChild(opt);
+      });
+      folderSelect.appendChild(el("option", { value: "__new__", text: "+ New folder…" }));
+    }
+    renderFolderSelect();
+    folderSelect.addEventListener("change", function(e) {
+      if (e.target.value === "__new__") {
+        var name = prompt("Name this folder:");
+        if (name && name.trim()) {
+          var f = createFolder(name);
+          draft.folderId = f.id;
+        }
+        renderFolderSelect();
+        folderSelect.value = draft.folderId || "";
+        return;
+      }
+      draft.folderId = e.target.value || null;
+    });
+    folderField.appendChild(folderSelect);
+    manualPanel.appendChild(folderField);
+
+    // Inputs builder
+    manualPanel.appendChild(el("div", { class: "section-label", text: "What numbers does it need?" }));
+    var inputsField = el("div", { class: "field" });
+    var inputsListEl = el("div", { id: "inputs-list" });
+    function renderOptionsBlock(inp) {
+      if (!inp.options || !inp.options.length) inp.options = [{ label: "", value: "" }, { label: "", value: "" }];
+      var block = el("div", { class: "options-block" });
+      block.appendChild(el("div", { class: "options-block-label", text: "Dropdown choices \u2014 shown to the person using the calculator, each with the number to use in the formula" }));
+      var optList = el("div", {});
+      function renderOptList() {
+        optList.innerHTML = "";
+        inp.options.forEach(function(opt, oIdx) {
+          var oRow = el("div", { class: "option-row" });
+          var labelInput = el("input", { type: "text", placeholder: "e.g. Real Turf", value: opt.label });
+          labelInput.addEventListener("input", function(e) { opt.label = e.target.value; });
+          var valueInput = el("input", { type: "number", inputmode: "decimal", placeholder: "Value, e.g. 15", value: opt.value });
+          valueInput.addEventListener("input", function(e) { opt.value = e.target.value; });
+          oRow.appendChild(labelInput);
+          oRow.appendChild(valueInput);
+          if (inp.options.length > 1) {
+            oRow.appendChild(el("button", { class: "row-remove", text: "×", onclick: function() {
+              inp.options.splice(oIdx, 1);
+              renderOptList();
+            }}));
+          }
+          optList.appendChild(oRow);
+        });
+      }
+      renderOptList();
+      block.appendChild(optList);
+      block.appendChild(el("button", { class: "add-option-btn", type: "button", text: "+ Add a choice", onclick: function() {
+        inp.options.push({ label: "", value: "" });
+        renderOptList();
+      }}));
+      return block;
+    }
+
+    function renderInputsList() {
+      inputsListEl.innerHTML = "";
+      draft.inputs.forEach(function(inp, idx) {
+        if (!inp.type) inp.type = "number";
+        var block = el("div", { class: "input-block" });
+        var row = el("div", { class: "input-row" });
+        row.appendChild(el("div", { class: "var-badge", text: inp.id }));
+        var labelInput = el("input", { type: "text", placeholder: "Label, e.g. Radius", value: inp.label });
+        labelInput.addEventListener("input", function(e) { inp.label = e.target.value; });
+        row.appendChild(labelInput);
+        var typeSelect = el("select", { class: "type-select" });
+        typeSelect.appendChild(el("option", { value: "number", text: "Number" }));
+        typeSelect.appendChild(el("option", { value: "lookup", text: "Dropdown" }));
+        typeSelect.value = inp.type;
+        typeSelect.addEventListener("change", function(e) {
+          inp.type = e.target.value;
+          renderInputsList();
+          renderChips();
+        });
+        row.appendChild(typeSelect);
+        if (draft.inputs.length > 1) {
+          row.appendChild(el("button", { class: "row-remove", text: "×", onclick: function() {
+            draft.inputs.splice(idx, 1);
+            reassignVarIds(draft.inputs);
+            renderInputsList();
+            renderChips();
+          }}));
+        }
+        block.appendChild(row);
+        if (inp.type === "lookup") {
+          block.appendChild(renderOptionsBlock(inp));
+        }
+        inputsListEl.appendChild(block);
+      });
+    }
+    renderInputsList();
+    inputsField.appendChild(inputsListEl);
+    var addBtn = el("button", { class: "add-input-btn", text: "+ Add a number", onclick: function() {
+      var nextId = VAR_LETTERS[draft.inputs.length] || ("v" + draft.inputs.length);
+      draft.inputs.push({ id: nextId, label: "", type: "number" });
+      renderInputsList();
+      renderChips();
+    }});
+    inputsField.appendChild(addBtn);
+    manualPanel.appendChild(inputsField);
+
+    // Formula builder
+    manualPanel.appendChild(el("div", { class: "section-label", text: "Define the calculation" }));
+    var chipsField = el("div", { class: "field" });
+    var chipRow = el("div", { class: "chip-row" });
+    function renderChips() {
+      chipRow.innerHTML = "";
+      draft.inputs.forEach(function(inp) {
+        chipRow.appendChild(el("button", { class: "chip", type: "button", text: inp.id + (inp.label ? " · " + inp.label : ""), onclick: function() { insertAtCursor(formulaInput, inp.id); draft.formula = formulaInput.value; updateTest(); } }));
+      });
+      ["+", "-", "×", "÷", "^", "(", ")"].forEach(function(sym) {
+        var actual = sym === "×" ? "*" : sym === "÷" ? "/" : sym;
+        chipRow.appendChild(el("button", { class: "chip op", type: "button", text: sym, onclick: function() { insertAtCursor(formulaInput, actual); draft.formula = formulaInput.value; updateTest(); } }));
+      });
+      ["sqrt(", "abs(", "round(", "min(", "max("].forEach(function(fn) {
+        chipRow.appendChild(el("button", { class: "chip fn", type: "button", text: fn.slice(0, -1), onclick: function() { insertAtCursor(formulaInput, fn); draft.formula = formulaInput.value; updateTest(); } }));
+      });
+    }
+    chipsField.appendChild(chipRow);
+    var formulaInput = el("input", { class: "formula-input", type: "text", placeholder: "e.g. 2*pi*a", value: draft.formula });
+    formulaInput.addEventListener("input", function(e) { draft.formula = e.target.value; updateTest(); });
+    chipsField.appendChild(formulaInput);
+    chipsField.appendChild(el("div", { class: "hint", text: "Tap the buttons above to build it, or type directly. Use the letters shown next to each number." }));
+    manualPanel.appendChild(chipsField);
+    renderChips();
+
+    // Output label
+    var outField = el("div", { class: "field" });
+    outField.appendChild(el("label", { text: "What should the result be called?" }));
+    var outInput = el("input", { type: "text", placeholder: "e.g. Circumference", value: draft.outputLabel });
+    outInput.addEventListener("input", function(e) { draft.outputLabel = e.target.value; });
+    outField.appendChild(outInput);
+    manualPanel.appendChild(outField);
+
+    // Test panel
+    var testPanel = el("div", { class: "test-panel" });
+    testPanel.appendChild(el("div", { class: "test-panel-label", text: "Try it with sample numbers" }));
+    var testGrid = el("div", { class: "test-grid" });
+    var testInputs = {};
+    function renderTestGrid() {
+      testGrid.innerHTML = "";
+      draft.inputs.forEach(function(inp) {
+        var f = el("div", { class: "field" });
+        f.appendChild(el("label", { text: inp.label || inp.id }));
+        if (inp.type === "lookup") {
+          var sel = el("select", {});
+          (inp.options || []).forEach(function(opt) {
+            sel.appendChild(el("option", { value: opt.value, text: opt.label || opt.value || "\u2014" }));
+          });
+          sel.addEventListener("input", function(e) { testInputs[inp.id] = e.target.value; updateTest(); });
+          sel.addEventListener("change", function(e) { testInputs[inp.id] = e.target.value; updateTest(); });
+          if (inp.options && inp.options.length) testInputs[inp.id] = inp.options[0].value;
+          f.appendChild(sel);
+        } else {
+          var ti = el("input", { type: "number", inputmode: "decimal", placeholder: "0" });
+          ti.addEventListener("input", function(e) { testInputs[inp.id] = e.target.value; updateTest(); });
+          f.appendChild(ti);
+        }
+        testGrid.appendChild(f);
+      });
+    }
+    renderTestGrid();
+    testPanel.appendChild(testGrid);
+    var testResult = el("div", { class: "test-result", text: "Enter numbers above to test your formula." });
+    testPanel.appendChild(testResult);
+    manualPanel.appendChild(testPanel);
+
+    function updateTest() {
+      try {
+        var vars = {};
+        var complete = true;
+        draft.inputs.forEach(function(inp) {
+          var v = parseFloat(testInputs[inp.id]);
+          if (isNaN(v)) complete = false;
+          vars[inp.id] = isNaN(v) ? 0 : v;
+        });
+        if (!draft.formula.trim()) {
+          testResult.textContent = "Enter numbers above to test your formula.";
+          testResult.className = "test-result";
+          return;
+        }
+        var result = evaluateFormula(draft.formula, vars);
+        testResult.textContent = (complete ? "" : "(fill in all numbers) ") + (draft.outputLabel || "Result") + " = " + formatNumber(result);
+        testResult.className = "test-result";
+      } catch (err) {
+        testResult.textContent = err.message;
+        testResult.className = "test-result error";
+      }
+    }
+
+    // Re-render inputs list wiring needs to also refresh test grid
+    var origRenderInputsList = renderInputsList;
+    renderInputsList = function() { origRenderInputsList(); renderTestGrid(); };
+    // rebind add/remove closures already reference renderInputsList by name (function decl hoisted) - patch buttons:
+    addBtn.onclick = function() {
+      var nextId = VAR_LETTERS[draft.inputs.length] || ("v" + draft.inputs.length);
+      draft.inputs.push({ id: nextId, label: "", type: "number" });
+      renderInputsList();
+      renderChips();
+    };
+
+    // Pushes the current draft (e.g. after an AI-generated result) back into the manual form
+    function refreshManualFromDraft() {
+      nameInput.value = draft.name;
+      renderInputsList();
+      renderChips();
+      formulaInput.value = draft.formula;
+      outInput.value = draft.outputLabel;
+      updateTest();
+    }
+
+    // Save button
+    var saveBtn = el("button", { class: "primary-btn", text: "Save calculator", onclick: function() {
+      if (!draft.name.trim()) { alert("Give your calculator a name first."); return; }
+      if (!draft.inputs.length || draft.inputs.some(function(i){ return !i.label.trim(); })) { alert("Give every number a label."); return; }
+      for (var li = 0; li < draft.inputs.length; li++) {
+        var linp = draft.inputs[li];
+        if (linp.type === "lookup") {
+          var opts = (linp.options || []).filter(function(o) { return o.label.trim() && o.value !== "" && !isNaN(parseFloat(o.value)); });
+          if (opts.length < 2) { alert('The dropdown for "' + linp.label + '" needs at least 2 choices, each with a label and a number.'); return; }
+          linp.options = opts;
+        }
+      }
+      if (!draft.formula.trim()) { alert("Add a formula before saving."); return; }
+      try {
+        var testVars = {};
+        draft.inputs.forEach(function(inp) { testVars[inp.id] = 1; });
+        evaluateFormula(draft.formula, testVars);
+      } catch (err) {
+        alert("There's a problem with the formula: " + err.message);
+        return;
+      }
+      var list = getList();
+      var idx = list.findIndex(function(c) { return c.id === draft.id; });
+      if (idx >= 0) list[idx] = draft; else list.push(draft);
+      saveAll(list);
+      goUse(draft.id);
+    }});
+    manualPanel.appendChild(saveBtn);
+
+    if (existing && !existing.isTemplate) {
+      manualPanel.appendChild(el("button", { class: "ghost-btn", text: "Delete this calculator", onclick: function() {
+        if (confirm('Delete "' + existing.name + '"? This can\'t be undone.')) {
+          var list = getList().filter(function(c) { return c.id !== existing.id; });
+          saveAll(list);
+          goHome();
+        }
+      }}));
+    }
+
+    // ---- Mode switcher: plain-English description vs. building with fields ----
+    if (showModeChoice) {
+      var tabDescribe = el("button", { class: "mode-tab active", type: "button", text: "Describe it in words" });
+      var tabManual = el("button", { class: "mode-tab", type: "button", text: "Build with fields" });
+      var tabs = el("div", { class: "mode-tabs" }, [tabDescribe, tabManual]);
+
+      var describePanel = el("div", { id: "describe-panel" });
+      var descField = el("div", { class: "field" });
+      descField.appendChild(el("label", { text: "Describe your calculation" }));
+      var descArea = el("textarea", { class: "describe-textarea", rows: "4", placeholder: "e.g. Take the bill total, add a 15% tip, then split it evenly between the number of people." });
+      descField.appendChild(descArea);
+      descField.appendChild(el("div", { class: "hint", text: "Write it like you'd explain it to a friend, and mention every number you'll want to enter." }));
+      describePanel.appendChild(descField);
+
+      var genStatus = el("div", { class: "describe-status" });
+
+      var genBtn = el("button", { class: "primary-btn", text: "Generate calculator" });
+      genBtn.addEventListener("click", function() {
+        var text = descArea.value.trim();
+        if (!text) {
+          genStatus.textContent = "Type a description first.";
+          genStatus.className = "describe-status error";
+          return;
+        }
+        genBtn.disabled = true;
+        genBtn.textContent = "Thinking…";
+        genStatus.textContent = "";
+        genStatus.className = "describe-status";
+        generateFromDescription(text).then(function(parsed) {
+          draft.name = (parsed.name || "").toString().slice(0, 80) || draft.name;
+          var rawInputs = parsed.inputs.slice(0, 26);
+          draft.inputs = rawInputs.map(function(inp, idx) {
+            return { id: VAR_LETTERS[idx], label: (inp && inp.label ? inp.label : "Value " + (idx + 1)).toString().slice(0, 60) };
+          });
+          draft.formula = (parsed.formula || "").toString();
+          draft.outputLabel = (parsed.outputLabel || "Result").toString().slice(0, 60);
+          refreshManualFromDraft();
+          genBtn.disabled = false;
+          genBtn.textContent = "Generate calculator";
+          setMode("manual");
+        }).catch(function(err) {
+          genBtn.disabled = false;
+          genBtn.textContent = "Generate calculator";
+          genStatus.textContent = err.message || "Something went wrong. Try rephrasing, or use \"Build with fields\" instead.";
+          genStatus.className = "describe-status error";
+        });
+      });
+      describePanel.appendChild(genBtn);
+      describePanel.appendChild(genStatus);
+
+      function setMode(mode) {
+        if (mode === "describe") {
+          describePanel.style.display = "";
+          manualPanel.style.display = "none";
+          tabDescribe.className = "mode-tab active";
+          tabManual.className = "mode-tab";
+        } else {
+          describePanel.style.display = "none";
+          manualPanel.style.display = "";
+          tabDescribe.className = "mode-tab";
+          tabManual.className = "mode-tab active";
+        }
+      }
+      tabDescribe.addEventListener("click", function() { setMode("describe"); });
+      tabManual.addEventListener("click", function() { setMode("manual"); });
+
+      main.appendChild(el("div", { class: "section-label", text: "Choose how to build it" }));
+      main.appendChild(tabs);
+      main.appendChild(describePanel);
+      setMode("describe");
+    }
+
+    main.appendChild(manualPanel);
+    wrap.appendChild(main);
+    return wrap;
+  }
+
+  function moveCustomCalc(id, dir) {
+    var list = getList();
+    var customIdx = [];
+    list.forEach(function(c, i) { if (!c.isTemplate) customIdx.push(i); });
+    var posInCustom = -1;
+    for (var k = 0; k < customIdx.length; k++) { if (list[customIdx[k]].id === id) { posInCustom = k; break; } }
+    if (posInCustom < 0) return;
+    var swapWith = posInCustom + dir;
+    if (swapWith < 0 || swapWith >= customIdx.length) return;
+    var iA = customIdx[posInCustom], iB = customIdx[swapWith];
+    var tmp = list[iA];
+    list[iA] = list[iB];
+    list[iB] = tmp;
+    saveAll(list);
+  }
+
+  function moveFolder(id, dir) {
+    var folders = getFolders();
+    var idx = folders.findIndex(function(f) { return f.id === id; });
+    if (idx < 0) return;
+    var swapWith = idx + dir;
+    if (swapWith < 0 || swapWith >= folders.length) return;
+    var tmp = folders[idx];
+    folders[idx] = folders[swapWith];
+    folders[swapWith] = tmp;
+    saveFolders(folders);
+  }
+
+  function reassignVarIds(inputs) {
+    inputs.forEach(function(inp, idx) { inp.id = VAR_LETTERS[idx] || ("v" + idx); });
+  }
+
+  function insertAtCursor(input, text) {
+    var start = input.selectionStart != null ? input.selectionStart : input.value.length;
+    var end = input.selectionEnd != null ? input.selectionEnd : input.value.length;
+    var val = input.value;
+    input.value = val.slice(0, start) + text + val.slice(end);
+    var pos = start + text.length;
+    input.focus();
+    input.setSelectionRange(pos, pos);
+  }
+
+  var ACCENT_COLORS = ["#24324C", "#3FA34D", "#4E7FD9", "#3AA5B5", "#D9A13B", "#E07A3A", "#C0392B", "#C2477E", "#7A5CC4", "#6B7A8F"];
+  function pickAccent() {
+    return ACCENT_COLORS[Math.floor(Math.random() * ACCENT_COLORS.length)];
+  }
+
+  /* ---- Organize (reorder, folders, edit/delete) ---- */
+  function renderOrganize() {
+    var wrap = el("div", {});
+    wrap.appendChild(topbar("Organise", { onBack: goHome }));
+    var main = el("main", {});
+
+    // Folder management
+    main.appendChild(el("div", { class: "section-label", text: "Folders" }));
+    var folderBox = el("div", { class: "test-panel" });
+    var folderListEl = el("div", {});
+    function renderFolderMgmt() {
+      folderListEl.innerHTML = "";
+      var folders = getFolders();
+      if (!folders.length) {
+        folderListEl.appendChild(el("div", { class: "empty-note", text: "No folders yet. Create one to group your calculators." }));
+      }
+      folders.forEach(function(f, idx) {
+        var row = el("div", { class: "folder-mgmt-row" });
+        var swatch = el("label", { class: "folder-swatch", style: "background:" + f.color });
+        var colorInput = el("input", { type: "color", value: f.color, style: "opacity:0;width:1px;height:1px;position:absolute;" });
+        colorInput.addEventListener("input", function(e) {
+          f.color = e.target.value;
+          saveFolders(folders);
+          renderFolderMgmt();
+        });
+        swatch.appendChild(colorInput);
+        row.appendChild(swatch);
+        var nameInput = el("input", { class: "folder-mgmt-name", type: "text", value: f.name });
+        nameInput.addEventListener("change", function(e) {
+          f.name = e.target.value.trim() || f.name;
+          saveFolders(folders);
+        });
+        row.appendChild(nameInput);
+        var moveBtns = el("div", { class: "org-move-btns" });
+        var upBtn = el("button", { type: "button", text: "▲", onclick: function() { moveFolder(f.id, -1); render(); } });
+        var downBtn = el("button", { type: "button", text: "▼", onclick: function() { moveFolder(f.id, 1); render(); } });
+        if (idx === 0) upBtn.disabled = true;
+        if (idx === folders.length - 1) downBtn.disabled = true;
+        moveBtns.appendChild(upBtn);
+        moveBtns.appendChild(downBtn);
+        row.appendChild(moveBtns);
+        row.appendChild(el("button", { class: "org-icon-btn", type: "button", text: "🗑", onclick: function() {
+          if (confirm('Delete folder "' + f.name + '"? Calculators inside will become unfiled.')) {
+            deleteFolder(f.id);
+            render();
+          }
+        }}));
+        folderListEl.appendChild(row);
+      });
+    }
+    renderFolderMgmt();
+    folderBox.appendChild(folderListEl);
+
+    var addFolderBtn = el("button", { class: "add-folder-btn", type: "button", text: "+ New folder" });
+    var newFolderForm = el("div", { class: "new-folder-form", style: "display:none;" });
+    var newFolderInput = el("input", { class: "new-folder-input", type: "text", placeholder: "Folder name" });
+    var newFolderSave = el("button", { class: "new-folder-save", type: "button", text: "Add" });
+    var newFolderCancel = el("button", { class: "new-folder-cancel", type: "button", text: "Cancel" });
+
+    function showNewFolderForm() {
+      addFolderBtn.style.display = "none";
+      newFolderForm.style.display = "flex";
+      newFolderInput.value = "";
+      newFolderInput.focus();
+    }
+    function hideNewFolderForm() {
+      newFolderForm.style.display = "none";
+      addFolderBtn.style.display = "block";
+    }
+    function submitNewFolder() {
+      var name = newFolderInput.value.trim();
+      if (name) { createFolder(name); render(); }
+      else newFolderInput.focus();
+    }
+
+    addFolderBtn.addEventListener("click", showNewFolderForm);
+    newFolderSave.addEventListener("click", submitNewFolder);
+    newFolderCancel.addEventListener("click", hideNewFolderForm);
+    newFolderInput.addEventListener("keydown", function(e) {
+      if (e.key === "Enter") { e.preventDefault(); submitNewFolder(); }
+      else if (e.key === "Escape") { e.preventDefault(); hideNewFolderForm(); }
+    });
+
+    newFolderForm.appendChild(newFolderInput);
+    newFolderForm.appendChild(newFolderSave);
+    newFolderForm.appendChild(newFolderCancel);
+
+    folderBox.appendChild(addFolderBtn);
+    folderBox.appendChild(newFolderForm);
+    main.appendChild(folderBox);
+
+    // Calculator ordering & folder assignment
+    main.appendChild(el("div", { class: "section-label", text: "Your calculators" }));
+    var list = getList();
+    var custom = list.filter(function(c) { return !c.isTemplate; });
+    if (!custom.length) {
+      main.appendChild(el("div", { class: "empty-note", text: "You haven't built any calculators yet." }));
+    } else {
+      custom.forEach(function(c, idx) {
+        var row = el("div", { class: "org-row", style: "--accent:" + (c.accent || "#3FA34D") });
+        row.appendChild(el("div", { class: "org-row-name", text: c.name }));
+
+        var folderSel = el("select", { class: "org-folder-select" });
+        folderSel.appendChild(el("option", { value: "", text: "No folder" }));
+        getFolders().forEach(function(f) {
+          var opt = el("option", { value: f.id, text: f.name });
+          if (c.folderId === f.id) opt.setAttribute("selected", "selected");
+          folderSel.appendChild(opt);
+        });
+        folderSel.addEventListener("change", function(e) {
+          c.folderId = e.target.value || null;
+          saveAll(list);
+        });
+        row.appendChild(folderSel);
+
+        var moveBtns = el("div", { class: "org-move-btns" });
+        var upBtn = el("button", { type: "button", text: "▲", onclick: function() { moveCustomCalc(c.id, -1); render(); } });
+        var downBtn = el("button", { type: "button", text: "▼", onclick: function() { moveCustomCalc(c.id, 1); render(); } });
+        if (idx === 0) upBtn.disabled = true;
+        if (idx === custom.length - 1) downBtn.disabled = true;
+        moveBtns.appendChild(upBtn);
+        moveBtns.appendChild(downBtn);
+        row.appendChild(moveBtns);
+
+        row.appendChild(el("button", { class: "org-icon-btn", type: "button", "aria-label": "Edit", text: "✎", onclick: function() { goCreate(c.id); } }));
+        row.appendChild(el("button", { class: "org-icon-btn", type: "button", "aria-label": "Delete", text: "🗑", onclick: function() {
+          if (confirm('Delete "' + c.name + '"? This can\'t be undone.')) {
+            var newList = getList().filter(function(x) { return x.id !== c.id; });
+            saveAll(newList);
+            render();
+          }
+        }}));
+
+        main.appendChild(row);
+      });
+    }
+
+    wrap.appendChild(main);
+    return wrap;
+  }
+
+  /* ---- Use ---- */
+  function renderUse(id) {
+    var calc = getById(id);
+    var wrap = el("div", {});
+    if (!calc) {
+      wrap.appendChild(topbar("Not found", { onBack: goHome }));
+      wrap.appendChild(el("main", {}, [el("p", { text: "That calculator no longer exists." })]));
+      return wrap;
+    }
+    wrap.appendChild(topbar(calc.name, {
+      onBack: goHome,
+      rightIcon: calc.isTemplate ? null : "✎",
+      onRight: calc.isTemplate ? null : function() { goCreate(calc.id); }
+    }));
+    var main = el("main", {});
+    if (calc.isTemplate) main.appendChild(el("div", { class: "template-tag", text: "Template" }));
+
+    var values = {};
+    var inputsWrap = el("div", { class: "use-inputs" });
+    var inputEls = {};
+    calc.inputs.forEach(function(inp) {
+      var f = el("div", { class: "use-field" });
+      f.appendChild(el("label", { text: inp.label }));
+      var inputEl;
+      if (inp.type === "lookup") {
+        inputEl = el("select", {});
+        (inp.options || []).forEach(function(opt) {
+          inputEl.appendChild(el("option", { value: opt.value, text: opt.label }));
+        });
+        inputEl.addEventListener("input", function(e) { values[inp.id] = e.target.value; });
+        inputEl.addEventListener("change", function(e) { values[inp.id] = e.target.value; });
+        if (inp.options && inp.options.length) values[inp.id] = inp.options[0].value;
+      } else {
+        inputEl = el("input", { type: "number", inputmode: "decimal", placeholder: "0" });
+        inputEl.addEventListener("input", function(e) { values[inp.id] = e.target.value; });
+      }
+      inputEls[inp.id] = inputEl;
+      f.appendChild(inputEl);
+      inputsWrap.appendChild(f);
+    });
+    main.appendChild(inputsWrap);
+
+    var calcBtn = el("button", { class: "primary-btn", text: "Calculate" });
+    main.appendChild(calcBtn);
+
+    var readout = el("div", { class: "readout" }, [
+      el("div", { class: "readout-label", text: calc.outputLabel || "Result" }),
+      el("div", { class: "readout-value readout-placeholder", text: "—" })
+    ]);
+    main.appendChild(readout);
+
+    calcBtn.addEventListener("click", function() {
+      var vars = {};
+      var ok = true;
+      calc.inputs.forEach(function(inp) {
+        var raw = values[inp.id];
+        var v = parseFloat(raw);
+        if (raw === undefined || raw === "" || isNaN(v)) ok = false;
+        vars[inp.id] = isNaN(v) ? 0 : v;
+      });
+      var valueEl = readout.querySelector(".readout-value");
+      if (!ok) {
+        valueEl.textContent = "Fill in every number above";
+        valueEl.className = "readout-value error";
+        return;
+      }
+      try {
+        var result = evaluateFormula(calc.formula, vars);
+        valueEl.textContent = formatNumber(result);
+        valueEl.className = "readout-value";
+      } catch (err) {
+        valueEl.textContent = err.message;
+        valueEl.className = "readout-value error";
+      }
+      readout.classList.add("flip");
+      setTimeout(function() { readout.classList.remove("flip"); }, 180);
+    });
+
+    var actions = el("div", { class: "use-actions" });
+    if (calc.isTemplate) {
+      actions.appendChild(el("button", { class: "dup-a", text: "Duplicate & edit", onclick: function() { goCreate(calc.id); } }));
+    } else {
+      actions.appendChild(el("button", { class: "edit-a", text: "Edit", onclick: function() { goCreate(calc.id); } }));
+      actions.appendChild(el("button", { class: "dup-a", text: "Duplicate", onclick: function() {
+        var newId = duplicateCalc(calc.id);
+        if (newId) goUse(newId);
+      }}));
+      actions.appendChild(el("button", { class: "del-a", text: "Delete", onclick: function() {
+        if (confirm('Delete "' + calc.name + '"? This can\'t be undone.')) {
+          var list = getList().filter(function(c) { return c.id !== calc.id; });
+          saveAll(list);
+          goHome();
+        }
+      }}));
+    }
+    main.appendChild(actions);
+
+    wrap.appendChild(main);
+    return wrap;
+  }
+
+  /* ============ PWA install support ============ */
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("service-worker.js").catch(function (err) {
+        console.error("Service worker registration failed:", err);
+      });
+    });
+  }
+
+  /* ============ Init ============ */
+  ensureSeeded();
+  render();
+})();
+</script>
+</body>
+</html>
